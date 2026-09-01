@@ -1,0 +1,905 @@
+<title>Flowboard</title>
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --app-bg: #F5F7FA;
+    --board-bg: #E9EDF4;
+    --surface: #FFFFFF;
+    --surface-2: #EEF1F6;
+    --surface-3: #E4E9F1;
+    --ink: #1B2233;
+    --muted: #667085;
+    --faint: #97A0B0;
+    --border: #DDE3EC;
+    --border-strong: #C9D1DE;
+    --accent: #3B6EF6;
+    --accent-hover: #2F5CD9;
+    --accent-ink: #FFFFFF;
+    --accent-wash: #E7EEFE;
+    --danger: #D93F45;
+    --warn: #B5730B;
+    --warn-wash: #FBEFD9;
+    --danger-wash: #FBE4E4;
+    --ok: #2E9E5B;
+    --shadow-card: 0 1px 2px rgba(23,33,55,.10), 0 1px 1px rgba(23,33,55,.04);
+    --shadow-pop: 0 12px 34px -8px rgba(23,33,55,.28), 0 3px 10px rgba(23,33,55,.14);
+    --radius: 12px;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --app-bg: #0F1116;
+      --board-bg: #0B0D12;
+      --surface: #1B1F27;
+      --surface-2: #21262F;
+      --surface-3: #2A303B;
+      --ink: #E7E9EE;
+      --muted: #9AA3B2;
+      --faint: #6D7686;
+      --border: #2C323D;
+      --border-strong: #3A414E;
+      --accent: #5E8BF8;
+      --accent-hover: #7AA0FA;
+      --accent-ink: #0B0D12;
+      --accent-wash: #1E2A44;
+      --danger: #F0595E;
+      --warn: #E0A857;
+      --warn-wash: #33291A;
+      --danger-wash: #3A2222;
+      --ok: #46B673;
+      --shadow-card: 0 1px 2px rgba(0,0,0,.4);
+      --shadow-pop: 0 16px 40px -10px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --app-bg: #0F1116;
+    --board-bg: #0B0D12;
+    --surface: #1B1F27;
+    --surface-2: #21262F;
+    --surface-3: #2A303B;
+    --ink: #E7E9EE;
+    --muted: #9AA3B2;
+    --faint: #6D7686;
+    --border: #2C323D;
+    --border-strong: #3A414E;
+    --accent: #5E8BF8;
+    --accent-hover: #7AA0FA;
+    --accent-ink: #0B0D12;
+    --accent-wash: #1E2A44;
+    --danger: #F0595E;
+    --warn: #E0A857;
+    --warn-wash: #33291A;
+    --danger-wash: #3A2222;
+    --ok: #46B673;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.4);
+    --shadow-pop: 0 16px 40px -10px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--app-bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---------- header ---------- */
+  header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 20px;
+    background: color-mix(in srgb, var(--app-bg) 82%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    z-index: 20;
+  }
+  .wordmark {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans KR", sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex: 0 0 auto;
+  }
+  .wordmark .dot {
+    width: 11px; height: 11px; border-radius: 3px;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-wash);
+  }
+  .board-title {
+    font-family: "Bricolage Grotesque", "IBM Plex Sans KR", sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 5px 9px;
+    min-width: 60px;
+    max-width: 42vw;
+    transition: border-color .15s, background .15s;
+  }
+  .board-title:hover { border-color: var(--border-strong); }
+  .board-title:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .spacer { flex: 1 1 auto; }
+  .stat {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 14px;
+    flex: 0 0 auto;
+  }
+  .stat b { color: var(--ink); font-weight: 500; }
+  .icon-btn {
+    flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 15px;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .icon-btn:hover { color: var(--ink); border-color: var(--border-strong); }
+
+  /* ---------- board ---------- */
+  main {
+    flex: 1 1 auto;
+    background: var(--board-bg);
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px 24px;
+    scroll-padding: 20px;
+  }
+
+  .list {
+    flex: 0 0 288px;
+    max-height: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    max-width: 288px;
+  }
+  .list.dragging { opacity: .5; }
+  .list.drop-target { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
+  .list-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 8px 8px 12px;
+  }
+  .list-drag {
+    cursor: grab;
+    color: var(--faint);
+    font-size: 13px;
+    padding: 2px 2px;
+    letter-spacing: -1px;
+    user-select: none;
+  }
+  .list-drag:active { cursor: grabbing; }
+  .list-title {
+    flex: 1 1 auto;
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 4px 7px;
+    min-width: 0;
+  }
+  .list-title:hover { border-color: var(--border-strong); }
+  .list-title:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .list-count {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface-3);
+    border-radius: 20px;
+    padding: 1px 8px;
+    flex: 0 0 auto;
+  }
+  .list-menu {
+    border: none; background: transparent; color: var(--faint);
+    font-size: 15px; line-height: 1; padding: 4px 6px; border-radius: 6px;
+    flex: 0 0 auto;
+  }
+  .list-menu:hover { color: var(--danger); background: var(--danger-wash); }
+
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 2px 8px 8px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 12px;
+  }
+  .cards:empty::after {
+    content: "카드를 여기로 끌어오세요";
+    display: block;
+    text-align: center;
+    color: var(--faint);
+    font-size: 12px;
+    padding: 14px 0 10px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 11px 10px;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: border-color .12s, transform .06s;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card:active { transform: translateY(1px); }
+  .card.dragging { opacity: .4; border-style: dashed; }
+  .card-top { display: flex; align-items: flex-start; gap: 8px; }
+  .card-check {
+    appearance: none;
+    flex: 0 0 auto;
+    width: 16px; height: 16px;
+    margin-top: 2px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 5px;
+    background: var(--surface);
+    display: grid; place-content: center;
+    transition: background .12s, border-color .12s;
+  }
+  .card-check:checked { background: var(--ok); border-color: var(--ok); }
+  .card-check:checked::after {
+    content: "";
+    width: 8px; height: 4px;
+    border: 2px solid #fff; border-top: 0; border-right: 0;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .card-text {
+    flex: 1 1 auto;
+    font-size: 13px;
+    color: var(--ink);
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .card.done .card-text { color: var(--faint); text-decoration: line-through; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-left: 24px; }
+  .card-meta:empty { display: none; }
+  .pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--surface-3);
+    color: var(--muted);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pill.due-warn { background: var(--warn-wash); color: var(--warn); }
+  .pill.due-over { background: var(--danger-wash); color: var(--danger); }
+  .pill.has-note::before { content: "≡"; }
+
+  .add-card {
+    margin: 0 8px 8px;
+    border: 1px dashed var(--border-strong);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: left;
+    transition: color .12s, border-color .12s, background .12s;
+  }
+  .add-card:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-wash); }
+
+  .composer { margin: 0 8px 8px; display: flex; flex-direction: column; gap: 7px; }
+  .composer textarea {
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 10px;
+    resize: none;
+    min-height: 58px;
+    width: 100%;
+  }
+  .composer textarea:focus { outline: none; }
+  .composer-row { display: flex; gap: 7px; align-items: center; }
+  .btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 7px 13px;
+    border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--border-strong); }
+
+  .add-list {
+    flex: 0 0 288px;
+    background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 12px;
+    text-align: left;
+  }
+  .add-list:hover { color: var(--accent); border-color: var(--accent); }
+
+  .empty-hint {
+    margin: auto;
+    text-align: center;
+    color: var(--faint);
+    align-self: center;
+  }
+  .empty-hint h2 {
+    font-family: "Bricolage Grotesque", sans-serif;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+
+  /* ---------- modal ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,20,32,.44);
+    backdrop-filter: blur(2px);
+    display: grid; place-items: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .modal {
+    width: min(520px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-pop);
+    padding: 20px 22px 22px;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .modal h3 {
+    margin: 0 0 2px;
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .modal-field { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
+  .modal-field label {
+    font-size: 11.5px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .modal textarea, .modal input[type="date"] {
+    font-family: inherit; font-size: 14px; color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 9px 11px;
+    width: 100%;
+  }
+  .modal textarea:focus, .modal input[type="date"]:focus { outline: none; border-color: var(--accent); }
+  .modal textarea#m-title { font-weight: 600; min-height: 46px; resize: vertical; }
+  .modal textarea#m-note { min-height: 96px; resize: vertical; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 22px; align-items: center; }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: var(--danger-wash); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<header>
+  <span class="wordmark"><span class="dot"></span>Flowboard</span>
+  <input id="board-title" class="board-title" aria-label="보드 이름" spellcheck="false">
+  <span class="spacer"></span>
+  <span class="stat">
+    <span>리스트 <b id="s-lists">0</b></span>
+    <span>카드 <b id="s-cards">0</b></span>
+    <span>완료 <b id="s-done">0</b></span>
+  </span>
+  <button class="icon-btn" id="theme-btn" aria-label="테마 전환" title="테마 전환">◐</button>
+</header>
+
+<main id="board"></main>
+
+<script>
+(function () {
+  "use strict";
+  var STORE = "flowboard.state.v1";
+  var THEME = "flowboard.theme";
+
+  /* ---------- theme ---------- */
+  try {
+    var t = localStorage.getItem(THEME);
+    if (t) document.documentElement.dataset.theme = t;
+  } catch (e) {}
+  document.getElementById("theme-btn").addEventListener("click", function () {
+    var cur = document.documentElement.dataset.theme;
+    var isDark = cur ? cur === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = isDark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem(THEME, next); } catch (e) {}
+  });
+
+  /* ---------- state ---------- */
+  var uid = function () { return Math.random().toString(36).slice(2, 9); };
+
+  function seed() {
+    return {
+      title: "제품 출시 준비",
+      lists: [
+        { id: uid(), title: "할 일", cards: [
+          { id: uid(), text: "랜딩 페이지 카피 확정", note: "히어로 문구 3안 중 택1\n법무 검토 필요", due: offset(2), done: false },
+          { id: uid(), text: "베타 피드백 정리", note: "", due: "", done: false },
+          { id: uid(), text: "가격표 A/B 테스트 설계", note: "", due: offset(6), done: false }
+        ]},
+        { id: uid(), title: "진행 중", cards: [
+          { id: uid(), text: "온보딩 이메일 시퀀스 작성", note: "1일차 · 3일차 · 7일차", due: offset(1), done: false },
+          { id: uid(), text: "결제 연동 QA", note: "", due: offset(-1), done: false }
+        ]},
+        { id: uid(), title: "검토", cards: [
+          { id: uid(), text: "앱 아이콘 시안 검토", note: "", due: "", done: false }
+        ]},
+        { id: uid(), title: "완료", cards: [
+          { id: uid(), text: "도메인 및 SSL 설정", note: "", due: "", done: true },
+          { id: uid(), text: "팀 킥오프 미팅", note: "", due: "", done: true }
+        ]}
+      ]
+    };
+  }
+  function offset(days) {
+    var d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  var state;
+  try {
+    state = JSON.parse(localStorage.getItem(STORE));
+  } catch (e) { state = null; }
+  if (!state || !Array.isArray(state.lists)) state = seed();
+
+  function save() {
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {}
+    renderStats();
+  }
+
+  var findList = function (id) { return state.lists.find(function (l) { return l.id === id; }); };
+  function findCard(id) {
+    for (var i = 0; i < state.lists.length; i++) {
+      var c = state.lists[i].cards.find(function (x) { return x.id === id; });
+      if (c) return { card: c, list: state.lists[i] };
+    }
+    return null;
+  }
+
+  /* ---------- date helpers ---------- */
+  function dueInfo(due, done) {
+    if (!due) return null;
+    var d = new Date(due + "T00:00:00");
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var diff = Math.round((d - today) / 86400000);
+    var label = (d.getMonth() + 1) + "월 " + d.getDate() + "일";
+    var cls = "";
+    if (!done) {
+      if (diff < 0) { cls = "due-over"; label = "지남 · " + label; }
+      else if (diff <= 2) cls = "due-warn";
+    }
+    return { label: label, cls: cls };
+  }
+
+  /* ---------- render ---------- */
+  var board = document.getElementById("board");
+  var titleInput = document.getElementById("board-title");
+  var activeComposer = null;
+
+  titleInput.value = state.title;
+  titleInput.addEventListener("change", function () {
+    state.title = titleInput.value.trim() || "제목 없는 보드";
+    titleInput.value = state.title;
+    save();
+  });
+
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  function render() {
+    board.innerHTML = "";
+    if (!state.lists.length) {
+      var hint = document.createElement("div");
+      hint.className = "empty-hint";
+      hint.innerHTML = "<h2>보드가 비어 있어요</h2><p>아래에서 첫 리스트를 만들어 보세요.</p>";
+      board.appendChild(hint);
+    }
+    state.lists.forEach(function (list) { board.appendChild(listEl(list)); });
+
+    var addBtn = document.createElement("button");
+    addBtn.className = "add-list";
+    addBtn.textContent = "+  리스트 추가";
+    addBtn.addEventListener("click", function () {
+      state.lists.push({ id: uid(), title: "새 리스트", cards: [] });
+      save(); render();
+      var inputs = board.querySelectorAll(".list-title");
+      var last = inputs[inputs.length - 1];
+      if (last) { last.focus(); last.select(); }
+    });
+    board.appendChild(addBtn);
+    renderStats();
+  }
+
+  function listEl(list) {
+    var el = document.createElement("section");
+    el.className = "list";
+    el.dataset.id = list.id;
+    el.draggable = true;
+
+    var head = document.createElement("div");
+    head.className = "list-head";
+
+    var grip = document.createElement("span");
+    grip.className = "list-drag";
+    grip.textContent = "⋮⋮";
+    grip.title = "드래그해서 리스트 이동";
+
+    var title = document.createElement("input");
+    title.className = "list-title";
+    title.value = list.title;
+    title.spellcheck = false;
+    title.setAttribute("aria-label", "리스트 이름");
+    title.addEventListener("change", function () {
+      list.title = title.value.trim() || "제목 없는 리스트";
+      title.value = list.title;
+      save();
+    });
+    title.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); title.blur(); }
+    });
+
+    var count = document.createElement("span");
+    count.className = "list-count";
+    count.textContent = list.cards.length;
+
+    var menu = document.createElement("button");
+    menu.className = "list-menu";
+    menu.innerHTML = "&times;";
+    menu.title = "리스트 삭제";
+    menu.setAttribute("aria-label", "리스트 삭제");
+    menu.addEventListener("click", function () {
+      if (list.cards.length && !confirm('"' + list.title + '" 리스트와 카드 ' + list.cards.length + '개를 삭제할까요?')) return;
+      state.lists = state.lists.filter(function (l) { return l.id !== list.id; });
+      save(); render();
+    });
+
+    head.append(grip, title, count, menu);
+    el.appendChild(head);
+
+    var ul = document.createElement("ul");
+    ul.className = "cards";
+    ul.dataset.list = list.id;
+    list.cards.forEach(function (card) { ul.appendChild(cardEl(card, list)); });
+    el.appendChild(ul);
+
+    if (activeComposer === list.id) {
+      el.appendChild(composerEl(list, ul));
+    } else {
+      var add = document.createElement("button");
+      add.className = "add-card";
+      add.textContent = "+  카드 추가";
+      add.addEventListener("click", function () {
+        activeComposer = list.id;
+        render();
+      });
+      el.appendChild(add);
+    }
+
+    /* list drag — only when started from the grip handle */
+    el.addEventListener("dragstart", function (e) {
+      if (e.target !== grip) { e.preventDefault(); return; }
+      dragType = "list";
+      dragEl = el;
+      e.dataTransfer.effectAllowed = "move";
+      requestAnimationFrame(function () { el.classList.add("dragging"); });
+    });
+    el.addEventListener("dragend", finishDrag);
+
+    return el;
+  }
+
+  function cardEl(card, list) {
+    var li = document.createElement("li");
+    li.className = "card" + (card.done ? " done" : "");
+    li.dataset.id = card.id;
+    li.draggable = true;
+
+    var top = document.createElement("div");
+    top.className = "card-top";
+
+    var chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.className = "card-check";
+    chk.checked = card.done;
+    chk.setAttribute("aria-label", "완료 표시");
+    chk.addEventListener("click", function (e) { e.stopPropagation(); });
+    chk.addEventListener("change", function () {
+      card.done = chk.checked;
+      li.classList.toggle("done", card.done);
+      save();
+    });
+
+    var text = document.createElement("div");
+    text.className = "card-text";
+    text.textContent = card.text;
+
+    top.append(chk, text);
+    li.appendChild(top);
+
+    var meta = document.createElement("div");
+    meta.className = "card-meta";
+    var di = dueInfo(card.due, card.done);
+    if (di) {
+      var p = document.createElement("span");
+      p.className = "pill " + di.cls;
+      p.textContent = "📅 " + di.label;
+      meta.appendChild(p);
+    }
+    if (card.note && card.note.trim()) {
+      var n = document.createElement("span");
+      n.className = "pill has-note";
+      n.textContent = " 메모";
+      meta.appendChild(n);
+    }
+    li.appendChild(meta);
+
+    li.addEventListener("click", function () { openModal(card.id); });
+
+    li.addEventListener("dragstart", function (e) {
+      e.stopPropagation();
+      dragType = "card";
+      dragEl = li;
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", card.id);
+      requestAnimationFrame(function () { li.classList.add("dragging"); });
+    });
+    li.addEventListener("dragend", finishDrag);
+
+    return li;
+  }
+
+  function composerEl(list, ul) {
+    var wrap = document.createElement("div");
+    wrap.className = "composer";
+    var ta = document.createElement("textarea");
+    ta.placeholder = "카드 내용을 입력하세요…  (Enter로 추가, Shift+Enter 줄바꿈)";
+    var row = document.createElement("div");
+    row.className = "composer-row";
+    var addB = document.createElement("button");
+    addB.className = "btn btn-primary";
+    addB.textContent = "카드 추가";
+    var cancelB = document.createElement("button");
+    cancelB.className = "btn btn-ghost";
+    cancelB.textContent = "취소";
+    row.append(addB, cancelB);
+    wrap.append(ta, row);
+
+    function commit(keepOpen) {
+      var v = ta.value.trim();
+      if (v) {
+        list.cards.push({ id: uid(), text: v, note: "", due: "", done: false });
+        save();
+      }
+      if (keepOpen && v) {
+        activeComposer = list.id;
+      } else {
+        activeComposer = null;
+      }
+      render();
+      if (keepOpen && v) {
+        var open = board.querySelector('.list[data-id="' + list.id + '"] .composer textarea');
+        if (open) open.focus();
+        var col = board.querySelector('.list[data-id="' + list.id + '"] .cards');
+        if (col) col.scrollTop = col.scrollHeight;
+      }
+    }
+
+    addB.addEventListener("click", function () { commit(true); });
+    cancelB.addEventListener("click", function () { activeComposer = null; render(); });
+    ta.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commit(true); }
+      if (e.key === "Escape") { activeComposer = null; render(); }
+    });
+    setTimeout(function () { ta.focus(); }, 0);
+    return wrap;
+  }
+
+  function renderStats() {
+    var lists = state.lists.length, cards = 0, done = 0;
+    state.lists.forEach(function (l) {
+      cards += l.cards.length;
+      l.cards.forEach(function (c) { if (c.done) done++; });
+    });
+    document.getElementById("s-lists").textContent = lists;
+    document.getElementById("s-cards").textContent = cards;
+    document.getElementById("s-done").textContent = done;
+  }
+
+  /* ---------- drag & drop ---------- */
+  var dragEl = null, dragType = null;
+
+  function afterCard(container, y) {
+    var els = [].slice.call(container.querySelectorAll(".card:not(.dragging)"));
+    var closest = { offset: -Infinity, el: null };
+    els.forEach(function (child) {
+      var box = child.getBoundingClientRect();
+      var off = y - box.top - box.height / 2;
+      if (off < 0 && off > closest.offset) closest = { offset: off, el: child };
+    });
+    return closest.el;
+  }
+  function afterList(x) {
+    var els = [].slice.call(board.querySelectorAll(".list:not(.dragging)"));
+    var closest = { offset: -Infinity, el: null };
+    els.forEach(function (child) {
+      var box = child.getBoundingClientRect();
+      var off = x - box.left - box.width / 2;
+      if (off < 0 && off > closest.offset) closest = { offset: off, el: child };
+    });
+    return closest.el;
+  }
+
+  board.addEventListener("dragover", function (e) {
+    if (!dragEl) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragType === "card") {
+      var ul = e.target.closest(".cards");
+      if (!ul) {
+        var listUnder = e.target.closest(".list");
+        if (listUnder) ul = listUnder.querySelector(".cards");
+      }
+      if (!ul) return;
+      var ref = afterCard(ul, e.clientY);
+      if (ref == null) ul.appendChild(dragEl);
+      else ul.insertBefore(dragEl, ref);
+    } else if (dragType === "list") {
+      var ref2 = afterList(e.clientX);
+      var addList = board.querySelector(".add-list");
+      if (ref2 == null) board.insertBefore(dragEl, addList);
+      else board.insertBefore(dragEl, ref2);
+    }
+  });
+  board.addEventListener("drop", function (e) { if (dragEl) e.preventDefault(); });
+
+  function finishDrag() {
+    if (!dragEl) return;
+    dragEl.classList.remove("dragging");
+    syncFromDOM();
+    dragEl = null; dragType = null;
+    save();
+    render();
+  }
+
+  function syncFromDOM() {
+    var cardMap = {};
+    state.lists.forEach(function (l) {
+      l.cards.forEach(function (c) { cardMap[c.id] = c; });
+    });
+    var listMap = {};
+    state.lists.forEach(function (l) { listMap[l.id] = l; });
+
+    var newLists = [];
+    [].slice.call(board.querySelectorAll(".list")).forEach(function (le) {
+      var l = listMap[le.dataset.id];
+      if (!l) return;
+      var newCards = [];
+      [].slice.call(le.querySelectorAll(".card")).forEach(function (ce) {
+        var c = cardMap[ce.dataset.id];
+        if (c) newCards.push(c);
+      });
+      l.cards = newCards;
+      newLists.push(l);
+    });
+    state.lists = newLists;
+  }
+
+  /* ---------- modal ---------- */
+  var overlay = null;
+  function openModal(cardId) {
+    var found = findCard(cardId);
+    if (!found) return;
+    var card = found.card, list = found.list;
+    closeModal();
+
+    overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.innerHTML =
+      '<div class="modal" role="dialog" aria-modal="true" aria-label="카드 편집">' +
+        '<h3>' + esc(list.title) + '</h3>' +
+        '<div class="modal-field"><label for="m-title">제목</label>' +
+          '<textarea id="m-title" spellcheck="false"></textarea></div>' +
+        '<div class="modal-field"><label for="m-note">메모</label>' +
+          '<textarea id="m-note" placeholder="세부 내용, 체크리스트, 링크 등"></textarea></div>' +
+        '<div class="modal-field"><label for="m-due">마감일</label>' +
+          '<input type="date" id="m-due"></div>' +
+        '<div class="modal-actions">' +
+          '<button class="btn btn-primary" id="m-save">저장</button>' +
+          '<button class="btn btn-ghost" id="m-close">닫기</button>' +
+          '<span class="spacer" style="flex:1"></span>' +
+          '<button class="btn btn-danger" id="m-del">삭제</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var mTitle = overlay.querySelector("#m-title");
+    var mNote = overlay.querySelector("#m-note");
+    var mDue = overlay.querySelector("#m-due");
+    mTitle.value = card.text;
+    mNote.value = card.note || "";
+    mDue.value = card.due || "";
+
+    function persist() {
+      card.text = mTitle.value.trim() || card.text;
+      card.note = mNote.value;
+      card.due = mDue.value;
+      save(); render();
+    }
+    overlay.querySelector("#m-save").addEventListener("click", function () {
+      persist(); closeModal();
+    });
+    overlay.querySelector("#m-close").addEventListener("click", function () {
+      persist(); closeModal();
+    });
+    overlay.querySelector("#m-del").addEventListener("click", function () {
+      list.cards = list.cards.filter(function (c) { return c.id !== card.id; });
+      save(); render(); closeModal();
+    });
+    overlay.addEventListener("mousedown", function (e) {
+      if (e.target === overlay) { persist(); closeModal(); }
+    });
+    document.addEventListener("keydown", escClose);
+    setTimeout(function () { mTitle.focus(); }, 0);
+  }
+  function escClose(e) { if (e.key === "Escape") closeModal(); }
+  function closeModal() {
+    if (overlay) { overlay.remove(); overlay = null; }
+    document.removeEventListener("keydown", escClose);
+  }
+
+  render();
+})();
+</script>
